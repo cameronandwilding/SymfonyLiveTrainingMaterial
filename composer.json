@@ -1,0 +1,13 @@
+{
+    "name": "symfonylive/workshop",
+    "description": "SymfonyLiveWorkshop",
+    "require": {
+        "symfony/http-kernel": "~2.3"
+    },
+    "license": "proprietary",
+    "autoload": {
+        "psr-4": {
+            "": "src/"
+        }
+    }
+}
