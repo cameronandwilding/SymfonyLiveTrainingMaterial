@@ -5,6 +5,10 @@ namespace SymfonyLive\HttpKernel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Routing\Matcher\UrlMatcher;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\Route;
+use Symfony\Component\Routing\RouteCollection;
 
 class WorkshopKernel implements HttpKernelInterface {
 
@@ -26,7 +30,18 @@ class WorkshopKernel implements HttpKernelInterface {
    * @api
    */
   public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = TRUE) {
-    $response = new Response('Hello World!');
+    $routes = new RouteCollection();
+    $routes->add(
+      'hello',
+      new Route('/hello', array('_controller' => 'SymfonyLive\Controller\HelloController::hello'))
+    );
+    $requestContext = new RequestContext();
+    $requestContext->fromRequest($request);
+    $urlMatcher = new UrlMatcher($routes, $requestContext);
+    $params = $urlMatcher->matchRequest($request);
+
+    $response = call_user_func_array($params['_controller'], array($request));
+
     return $response;
   }
 
