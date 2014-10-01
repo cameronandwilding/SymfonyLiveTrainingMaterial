@@ -2,13 +2,13 @@
 
 namespace SymfonyLive\HttpKernel;
 
+use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\Routing\Matcher\UrlMatcher;
-use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RouteCollection;
+use Symfony\Component\Routing\Loader\YamlFileLoader;
+use Symfony\Component\Routing\Router;
 
 class WorkshopKernel implements HttpKernelInterface {
 
@@ -30,17 +30,17 @@ class WorkshopKernel implements HttpKernelInterface {
    * @api
    */
   public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = TRUE) {
-    $routes = new RouteCollection();
-    $routes->add(
-      'hello',
-      new Route('/hello', array('_controller' => 'SymfonyLive\Controller\HelloController::hello'))
-    );
-    $requestContext = new RequestContext();
-    $requestContext->fromRequest($request);
-    $urlMatcher = new UrlMatcher($routes, $requestContext);
-    $params = $urlMatcher->matchRequest($request);
+    $locator = new FileLocator(__DIR__ . '/../../../config');
+    $loader = new YamlFileLoader($locator);
+    $router = new Router($loader, 'routing.yml');
+    $params = $router->matchRequest($request);
+    $request->attributes->add($params);
 
-    $response = call_user_func_array($params['_controller'], array($request));
+    $controllerResolver = new ControllerResolver();
+    $controller = $controllerResolver->getController($request);
+    $arguments = $controllerResolver->getArguments($request, $controller);
+
+    $response = call_user_func_array($controller, $arguments);
 
     return $response;
   }

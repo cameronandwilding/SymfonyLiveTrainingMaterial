@@ -7,8 +7,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class HelloController {
 
-  public static function hello(Request $request) {
-    return new Response('Hello: ' . $request->query->get('name'));
+  public static function hello(Request $request, $name) {
+    return new Response("Hello $name!");
   }
 
 }

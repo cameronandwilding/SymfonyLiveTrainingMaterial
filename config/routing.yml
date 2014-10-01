@@ -1,0 +1,4 @@
+hello:
+  path: /hello/{name}
+  defaults:
+    _controller: SymfonyLive\Controller\HelloController::hello
