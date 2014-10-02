@@ -3,14 +3,31 @@
 namespace SymfonyLive\HttpKernel;
 
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Loader\YamlFileLoader;
 use Symfony\Component\Routing\Router;
 
 class WorkshopKernel implements HttpKernelInterface {
+
+  /**
+   * @var \Symfony\Component\HttpKernel\Controller\ControllerResolver
+   */
+  private $controllerResolver;
+
+  /**
+   * @var \Symfony\Component\EventDispatcher\EventDispatcher
+   */
+  private $eventDispatcher;
+
+  public function __construct(ControllerResolver $controllerResolver, EventDispatcher $eventDispatcher) {
+    $this->controllerResolver = $controllerResolver;
+    $this->eventDispatcher = $eventDispatcher;
+  }
 
   /**
    * Handles a Request to convert it to a Response.
@@ -30,15 +47,11 @@ class WorkshopKernel implements HttpKernelInterface {
    * @api
    */
   public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = TRUE) {
-    $locator = new FileLocator(__DIR__ . '/../../../config');
-    $loader = new YamlFileLoader($locator);
-    $router = new Router($loader, 'routing.yml');
-    $params = $router->matchRequest($request);
-    $request->attributes->add($params);
+    $getResponseEvent = new GetResponseEvent($this, $request, $type);
+    $this->eventDispatcher->dispatch('kernel.request', $getResponseEvent);
 
-    $controllerResolver = new ControllerResolver();
-    $controller = $controllerResolver->getController($request);
-    $arguments = $controllerResolver->getArguments($request, $controller);
+    $controller = $this->controllerResolver->getController($request);
+    $arguments = $this->controllerResolver->getArguments($request, $controller);
 
     $response = call_user_func_array($controller, $arguments);
 
