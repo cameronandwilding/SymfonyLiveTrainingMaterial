@@ -11,4 +11,11 @@ class HelloController {
     return new Response("Hello $name!");
   }
 
+  public static function helloJSON(Request $request, $name) {
+    return (object) array(
+      'name' => $name,
+      'IP' => $request->getClientIp(),
+    );
+  }
+
 }

@@ -8,7 +8,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Routing\Exception\InvalidParameterException;
 use Symfony\Component\Routing\Loader\YamlFileLoader;
 use Symfony\Component\Routing\Router;
 
@@ -54,6 +56,17 @@ class WorkshopKernel implements HttpKernelInterface {
     $arguments = $this->controllerResolver->getArguments($request, $controller);
 
     $response = call_user_func_array($controller, $arguments);
+
+    if (!($response instanceof Response)) {
+      $responseForControllerResultEvent = new GetResponseForControllerResultEvent($this, $request, $type, $response);
+      $this->eventDispatcher->dispatch('kernel.view', $responseForControllerResultEvent);
+
+      $response = $responseForControllerResultEvent->getResponse();
+
+      if (!($response instanceof Response)) {
+        throw new InvalidParameterException();
+      }
+    }
 
     return $response;
   }

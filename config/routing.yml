@@ -2,3 +2,8 @@ hello:
   path: /hello/{name}
   defaults:
     _controller: SymfonyLive\Controller\HelloController::hello
+
+hello_json:
+  path: /hello/{name}/json
+  defaults:
+    _controller: SymfonyLive\Controller\HelloController::helloJSON
