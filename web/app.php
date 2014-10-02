@@ -1,21 +1,19 @@
 <?php
 
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Controller\ControllerResolver;
-use SymfonyLive\EventListener\RouterListener;
-use SymfonyLive\EventListener\SerializerListener;
-use SymfonyLive\HttpKernel\WorkshopKernel;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$controllerResolver = new ControllerResolver();
-$eventDispatcher = new EventDispatcher();
-
-$eventDispatcher->addListener('kernel.request', array(new RouterListener(), 'onKernelRequest'));
-$eventDispatcher->addListener('kernel.view', array(new SerializerListener(), 'onKernelView'));
+$container = new ContainerBuilder();
+$locator = new FileLocator(array(__DIR__ . '/../config'));
+$loader = new YamlFileLoader($container, $locator);
+$loader->load('services.yml');
 
 $request = Request::createFromGlobals();
-$kernel = new WorkshopKernel($controllerResolver, $eventDispatcher);
+
+$kernel = $container->get('workshop_kernel');
 $response = $kernel->handle($request);
 $response->send();

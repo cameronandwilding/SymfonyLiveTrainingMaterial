@@ -1,0 +1,19 @@
+services:
+  controller_resolver:
+    class: Symfony\Component\HttpKernel\Controller\ControllerResolver
+
+  router_listener:
+    class: SymfonyLive\EventListener\RouterListener
+
+  serializer_listener:
+    class: SymfonyLive\EventListener\SerializerListener
+
+  event_dispatcher:
+    class: Symfony\Component\EventDispatcher\EventDispatcher
+    calls:
+      - [addListener, [kernel.request, [@router_listener, onKernelRequest]]]
+      - [addListener, [kernel.view, [@serializer_listener, onKernelView]]]
+
+  workshop_kernel:
+    class: SymfonyLive\HttpKernel\WorkshopKernel
+    arguments: [@controller_resolver, @event_dispatcher]
